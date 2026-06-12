@@ -1,3 +1,8 @@
+"""Conexão com o MySQL usando mysql-connector-python.
+
+Fornece um context manager simples para abrir/fechar conexões e cursores.
+Para um protótipo isso é suficiente; em produção use um pool de conexões.
+"""
 from contextlib import contextmanager
 import mysql.connector
 from config import Config

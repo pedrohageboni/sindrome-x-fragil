@@ -11,14 +11,20 @@ extras de autenticação.
 ```
 sxf-triagem/
 ├── backend/                 # API Flask + MySQL
-│   ├── Em breve             # Criando
+│   ├── app.py               # rotas (login, cadastro, usuários, dashboard)
+│   ├── auth.py              # hash de senha + decorators de permissão
+│   ├── config.py            # configuração via .env
+│   ├── db.py                # conexão MySQL
+│   ├── schema.sql           # banco de dados (seu schema + CREATE DATABASE)
+│   ├── requirements.txt
+│   └── .env.example
 └── frontend/                # React + Vite (JavaScript)
     ├── src/
     │   ├── pages/           # Login, Register, Dashboard
     │   ├── context/         # AuthContext (estado de sessão)
     │   ├── components/      # ProtectedRoute
     │   ├── api.js           # cliente HTTP
-    │   └── styles.css       # CSS aqui depois
+    │   └── styles.css       # CSS minimalista
     ├── index.html
     ├── package.json
     └── vite.config.js
@@ -37,7 +43,17 @@ Sem tokens, sem armazenamento manual de credenciais no frontend.
 
 ## Administração multinível (regra de negócio)
 
-rascunho
+Três níveis, conforme o `ENUM` da tabela `usuarios`:
+
+| Nível      | O que vê no dashboard                                   |
+|------------|--------------------------------------------------------|
+| `admin`    | Métricas + **gestão de usuários** (criar, mudar nível, ativar/desativar) |
+| `medico`   | Métricas + painel de avaliação clínica                 |
+| `recepcao` | Métricas + painel de cadastro de pacientes             |
+
+**Bootstrap do primeiro usuário:** enquanto não existe nenhum usuário, o primeiro
+cadastro é promovido automaticamente a `admin`. Depois disso, **apenas um admin
+logado** pode cadastrar novos usuários e definir o nível deles.
 
 ---
 
@@ -113,14 +129,31 @@ cookie de sessão funciona sem complicação de CORS em desenvolvimento.
 
 # Mapa de endpoints
 
-rascunho
+| Método | Rota                       | Acesso        | Descrição                          |
+|--------|----------------------------|---------------|------------------------------------|
+| GET    | `/api/health`              | público       | Status da API                      |
+| POST   | `/api/auth/registrar`      | público*/admin| Cadastra usuário (*1º = admin)     |
+| POST   | `/api/auth/login`          | público       | Autentica e cria a sessão          |
+| POST   | `/api/auth/logout`         | autenticado   | Encerra a sessão                   |
+| GET    | `/api/auth/me`             | autenticado   | Dados do usuário logado            |
+| GET    | `/api/dashboard`           | autenticado   | Métricas resumidas                 |
+| GET    | `/api/usuarios`            | admin         | Lista usuários                     |
+| PATCH  | `/api/usuarios/<id>`       | admin         | Altera nível / ativa-desativa      |
 
 ---
 
 # Requisitos atendidos neste protótipo
 
-rascunho
+- **RF11** — autenticação antes do acesso (login + sessão).
+- **RF08 / RNF08** — limiares e pesos configuráveis (tabelas `limiares` e `sintomas`).
+- **RNF01** — senha armazenada com hash (nunca em texto puro).
+- **RNF02** — controle de acesso por perfil (`admin`/`medico`/`recepcao`).
+- **RNF03** — auditoria de ações em `historico_acesso` (login, cadastro, edição).
+- **RNF06 / RNF07** — interface enxuta e responsiva.
 
 # Próximos passos (fora do escopo deste protótipo)
 
-rascunho
+- Telas de cadastro de paciente, checklist clínico, cálculo de score e laudo
+  (tabelas `pacientes`, `avaliacoes`, `respostas_avaliacao`, `laudos` já existem no schema).
+- Endpoint de cálculo de score somando os pesos dos sintomas presentes e
+  comparando com o limiar do sexo (RF06/RF07).

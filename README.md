@@ -111,6 +111,6 @@ MIT. O texto completo está no arquivo LICENSE.
 
 ## Equipe
 
-(coloque aqui os nomes do grupo)
+Victor Silveira Portelinha, GUstavo Henrique Levis, Pedro Henrique Hage Bonicontro
 
 Disciplina de Experiência Criativa, PUCPR.

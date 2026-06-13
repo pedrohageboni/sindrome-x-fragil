@@ -423,33 +423,6 @@ EXISTS`).
 
 ---
 
-## 9. Roteiro para a prova de autoria
-
-Perguntas prováveis e respostas curtas para defender o modelo:
-
-- **Por que separar `usuarios` de `profissionais`?**
-  Para não deixar CRM/especialidade nulos na recepção e no admin; relação 1:0..1.
-
-- **Onde está o N:M e como foi resolvido?**
-  Entre `avaliacoes` e `sintomas`, resolvido pela entidade associativa `respostas_avaliacao` com
-  `UNIQUE(id_avaliacao, id_sintoma)`.
-
-- **O banco está em 3FN?**
-  Sim. Sem grupos repetitivos (1FN), sem dependência parcial — PKs simples (2FN) — e sem dependência
-  transitiva (3FN). As colunas `score_obtido`, `limiar_aplicado` e `peso_aplicado` são *snapshots*
-  intencionais para integridade histórica, não erro de normalização.
-
-- **Por que `RESTRICT` e não `CASCADE` em paciente/usuário?**
-  Para não apagar registros clínicos em cascata; usa-se inativação lógica (`ativo`).
-
-- **Onde há `CASCADE` e por quê?**
-  Em `respostas_avaliacao → avaliacoes`: a resposta não existe sem a avaliação (existência dependente).
-
-- **Por que `DECIMAL` e não `FLOAT` nos pesos?**
-  `DECIMAL` é exato; `FLOAT` introduziria erro de arredondamento em valores monetários/de score.
-
-- **Por que `utf8mb4`?**
-  Unicode completo (acentuação correta em português, evita o `utf8` legado de 3 bytes).
 
 - **Como o score é calculado?**
   Soma dos pesos dos sintomas presentes (por sexo) comparada ao limiar do sexo; o banco persiste o

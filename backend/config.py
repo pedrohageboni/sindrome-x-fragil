@@ -1,8 +1,4 @@
-"""Configuração central da aplicação.
 
-Lê variáveis de ambiente do arquivo .env (carregado em app.py).
-Nunca coloque segredos reais aqui — use o .env.
-"""
 import os
 
 

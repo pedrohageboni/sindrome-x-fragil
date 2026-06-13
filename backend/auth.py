@@ -1,9 +1,4 @@
-"""Autenticação e autorização — versão simples baseada em sessão.
 
-- Hash de senha com werkzeug (já incluso no Flask)
-- Login guarda o usuário na sessão do Flask (cookie assinado)
-- Decorators @login_required e @roles_required para controle de acesso
-"""
 from functools import wraps
 
 from flask import session, jsonify

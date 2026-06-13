@@ -1,22 +1,4 @@
-"""SXF Triagem — API Flask (protótipo).
 
-Login simples baseado em sessão (cookie do Flask). Sem tokens.
-
-Foco deste protótipo:
-  - Autenticação (login/cadastro) com hash de senha
-  - Administração multinível: admin | medico | recepcao
-  - Cadastro de pacientes (recepção, médico ou admin)
-  - Avaliação clínica da Síndrome do X Frágil (checklist pontuado),
-    com cálculo de score no servidor e restrita ao nível 'medico'
-  - Dados resumidos para o dashboard
-  - Auditoria de ações em historico_acesso
-
-A lógica de pontuação segue o checklist de Romero et al. (2025): cada
-sintoma tem um peso por sexo biológico; o score é a soma dos pesos dos
-sintomas presentes; se o score atinge o limiar do sexo, o indivíduo é
-classificado como "encaminhar" (suspeito, indicar teste genético); caso
-contrário, "monitorar".
-"""
 from flask import Flask, request, jsonify, session, Response
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -65,7 +47,7 @@ except ImportError:  # Flask < 2.2
 NIVEIS_VALIDOS = ("admin", "medico", "recepcao")
 
 
-# --------------------------- Utilitários ---------------------------------
+
 def registrar_log(id_usuario, acao, entidade=None, entidade_id=None):
     """Grava auditoria. Falha silenciosa para não quebrar o fluxo."""
     try:
@@ -196,14 +178,7 @@ def health():
 # ----------------------------- Cadastro ----------------------------------
 @app.post("/api/auth/registrar")
 def registrar():
-    """Cadastra um novo usuário.
-
-    Regra de negócio (multinível):
-      - Se ainda NÃO existe nenhum usuário, o primeiro cadastro vira 'admin'
-        automaticamente (bootstrap inicial do sistema).
-      - A partir daí, apenas um usuário 'admin' logado pode cadastrar outros
-        usuários e definir o nível deles.
-    """
+    
     dados = request.get_json(silent=True) or {}
     nome = (dados.get("nome") or "").strip()
     email = (dados.get("email") or "").strip().lower()
@@ -799,7 +774,7 @@ def criar_avaliacao():
 @app.get("/api/dashboard")
 @login_required
 def dashboard():
-    """Métricas resumidas. O frontend decide o que exibir conforme o nível."""
+    
     with get_cursor() as cur:
         cur.execute("SELECT COUNT(*) AS total FROM pacientes")
         total_pacientes = cur.fetchone()["total"]

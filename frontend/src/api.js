@@ -21,12 +21,15 @@ async function request(path, { method = "GET", body } = {}) {
   }
 
   if (!res.ok) {
-    throw new Error(data.erro || `Erro ${res.status}`);
+    const err = new Error(data.erro || `Erro ${res.status}`);
+    err.payload = data; // ex.: { perfil_incompleto: true }
+    throw err;
   }
   return data;
 }
 
 export const api = {
+  // --- Autenticação ---
   login: (email, senha) =>
     request("/auth/login", { method: "POST", body: { email, senha } }),
 
@@ -37,10 +40,32 @@ export const api = {
 
   me: () => request("/auth/me"),
 
+  // --- Dashboard / usuários ---
   dashboard: () => request("/dashboard"),
 
   listarUsuarios: () => request("/usuarios"),
 
   atualizarUsuario: (id, payload) =>
     request(`/usuarios/${id}`, { method: "PATCH", body: payload }),
+
+  // --- Catálogo clínico ---
+  sintomas: () => request("/sintomas"),
+  limiares: () => request("/limiares"),
+
+  // --- Pacientes ---
+  listarPacientes: () => request("/pacientes"),
+  criarPaciente: (payload) =>
+    request("/pacientes", { method: "POST", body: payload }),
+  obterPaciente: (id) => request(`/pacientes/${id}`),
+
+  // --- Perfil profissional (médico) ---
+  perfilProfissional: () => request("/profissionais/me"),
+  salvarPerfilProfissional: (payload) =>
+    request("/profissionais/me", { method: "POST", body: payload }),
+
+  // --- Avaliações ---
+  listarAvaliacoes: () => request("/avaliacoes"),
+  obterAvaliacao: (id) => request(`/avaliacoes/${id}`),
+  criarAvaliacao: (payload) =>
+    request("/avaliacoes", { method: "POST", body: payload }),
 };

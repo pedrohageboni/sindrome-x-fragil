@@ -27,7 +27,7 @@ a {
   color: var(--accent);
 }
 
-/* login/cadastro */
+/* ----- Layout de autenticação (login / cadastro) ----- */
 .auth-wrap {
   min-height: 100vh;
   display: flex;
@@ -56,7 +56,7 @@ a {
   font-size: 14px;
 }
 
-/* formularios */
+/* ----- Formulários ----- */
 .field {
   margin-bottom: 14px;
 }
@@ -149,7 +149,7 @@ a {
   border: 1px solid #cce7d6;
 }
 
-/* dashboard */
+/* ----- Dashboard ----- */
 .topbar {
   display: flex;
   align-items: center;
@@ -288,4 +288,307 @@ th {
   padding: 40px;
   text-align: center;
   color: var(--muted);
+}
+
+.topbar .nav {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav-link {
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  background: #f0f0ee;
+}
+
+.nav-link-active {
+  color: var(--accent);
+  background: #ece9fb;
+  font-weight: 600;
+}
+
+/* ----- Layout em duas colunas da avaliação ----- */
+.aval-grid {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .aval-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ----- Checklist de sintomas ----- */
+.cat-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 18px 0 8px;
+}
+
+.checklist {
+  display: grid;
+  gap: 8px;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  background: #fff;
+  font-size: 14px;
+}
+
+.check-item:hover {
+  border-color: var(--accent);
+}
+
+.check-item.on {
+  border-color: var(--accent);
+  background: #f6f5fe;
+}
+
+.check-item input {
+  width: auto;
+}
+
+.check-item .peso {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* ----- Caixa de score (sticky) ----- */
+.score-box {
+  position: sticky;
+  top: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  background: var(--surface);
+}
+
+.score-box .score-num {
+  font-size: 34px;
+  font-weight: 700;
+}
+
+.score-box .score-den {
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.score-bar {
+  height: 8px;
+  background: #eee;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 12px 0;
+}
+
+.score-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.15s ease;
+}
+
+
+.badge-encaminhar {
+  background: #fbeaea;
+  color: var(--danger);
+}
+
+.badge-monitorar {
+  background: #e9f4ee;
+  color: var(--ok);
+}
+.topbar .nav {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav-link {
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  background: #f0f0ee;
+}
+
+.nav-link-active {
+  color: var(--accent);
+  background: #ece9fb;
+  font-weight: 600;
+}
+
+/* ----- Layout em duas colunas da avaliação ----- */
+.aval-grid {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .aval-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ----- Checklist de sintomas ----- */
+.cat-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 18px 0 8px;
+}
+
+.checklist {
+  display: grid;
+  gap: 8px;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  background: #fff;
+  font-size: 14px;
+}
+
+.check-item:hover {
+  border-color: var(--accent);
+}
+
+.check-item.on {
+  border-color: var(--accent);
+  background: #f6f5fe;
+}
+
+.check-item input {
+  width: auto;
+}
+
+.check-item .peso {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* ----- Caixa de score (sticky) ----- */
+.score-box {
+  position: sticky;
+  top: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  background: var(--surface);
+}
+
+.score-box .score-num {
+  font-size: 34px;
+  font-weight: 700;
+}
+
+.score-box .score-den {
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.score-bar {
+  height: 8px;
+  background: #eee;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 12px 0;
+}
+
+.score-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.15s ease;
+}
+
+/* ----- Badges de resultado ----- */
+.badge-encaminhar {
+  background: #fbeaea;
+  color: var(--danger);
+}
+
+.badge-monitorar {
+  background: #e9f4ee;
+  color: var(--ok);
+}
+
+/* ----- Detalhe de respostas ----- */
+.resp-presente {
+  font-weight: 600;
+}
+
+.resp-ausente {
+  color: var(--muted);
+}
+
+/* ----- Mini-gráfico de resultados (dashboard) ----- */
+.chart-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 90px;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.chart-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.chart-track {
+  height: 14px;
+  background: #eee;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.chart-track > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+
+.chart-value {
+  font-size: 13px;
+  text-align: right;
 }

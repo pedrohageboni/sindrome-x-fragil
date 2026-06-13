@@ -1,6 +1,8 @@
 -- =============================================================
 -- SXF Triagem — Arquitetura de Banco de Dados MySQL
--- Protocolo SXF·BR  |  Versão 1.0.0
+-- Protocolo SXF·BR  |  Versão 2.0.0
+-- Pesos e limiares alinhados a Romero et al. (2025), Tabelas 4 e 5.
+-- (Para instalação NOVA. Se já tem dados, use migration_v2.sql.)
 -- =============================================================
 
 CREATE DATABASE IF NOT EXISTS sxf_triagem
@@ -66,47 +68,52 @@ CREATE TABLE IF NOT EXISTS pacientes (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -------------------------------------------------------------
--- 4. SINTOMAS
+-- 4. SINTOMAS  (12 itens — Romero et al., 2025)
+--    Pesos por sexo são DECIMAL (P = FX − FN do artigo).
 -- -------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS sintomas (
-    id_sintoma      INT           NOT NULL AUTO_INCREMENT,
-    nome            VARCHAR(120)  NOT NULL,
+    id_sintoma      INT            NOT NULL AUTO_INCREMENT,
+    nome            VARCHAR(160)   NOT NULL,
     categoria       ENUM('cognitivo','fisico') NOT NULL,
-    peso_masculino  TINYINT       NOT NULL DEFAULT 0,
-    peso_feminino   TINYINT       NOT NULL DEFAULT 0,
-    ativo           TINYINT(1)    NOT NULL DEFAULT 1,
+    peso_masculino  DECIMAL(3,2)   NOT NULL DEFAULT 0.00,
+    peso_feminino   DECIMAL(3,2)   NOT NULL DEFAULT 0.00,
+    ativo           TINYINT(1)     NOT NULL DEFAULT 1,
     PRIMARY KEY (id_sintoma),
     INDEX idx_categoria (categoria)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Categoria 'cognitivo' agrupa sinais cognitivos E comportamentais
+-- (o schema só prevê dois grupos; ver melhorias futuras).
 INSERT INTO sintomas (nome, categoria, peso_masculino, peso_feminino) VALUES
-    ('Dificuldades de aprendizagem',        'cognitivo', 3, 2),
-    ('Déficit de atenção / hiperatividade', 'cognitivo', 3, 2),
-    ('Atraso na fala ou linguagem',         'cognitivo', 2, 2),
-    ('Comportamentos do espectro autista',  'cognitivo', 3, 1),
-    ('Face alongada',                       'fisico',    2, 1),
-    ('Orelhas proeminentes',                'fisico',    2, 1),
-    ('Mandíbula proeminente',               'fisico',    2, 1),
-    ('Hipotonia muscular',                  'fisico',    1, 1),
-    ('Macroorquidismo (pós-puberal)',       'fisico',    3, 0),
-    ('Hiperextensibilidade articular',      'fisico',    1, 1);
+    ('Atraso na fala ou linguagem',                                   'cognitivo', 0.14, 0.01),
+    ('Dificuldades de aprendizagem',                                  'cognitivo', 0.18, 0.28),
+    ('Déficit de atenção',                                            'cognitivo', 0.17, 0.12),
+    ('Deficiência intelectual (DI)',                                  'cognitivo', 0.32, 0.20),
+    ('Hiperatividade',                                                'cognitivo', 0.12, 0.04),
+    ('Comportamento agressivo',                                       'cognitivo', 0.01, 0.02),
+    ('Evita contato visual',                                          'cognitivo', 0.06, 0.08),
+    ('Evita contato físico',                                          'cognitivo', 0.04, 0.07),
+    ('Movimentos intencionais, repetitivos e rítmicos (estereotipias)','cognitivo', 0.17, 0.05),
+    ('Hiperflexibilidade articular (hipermobilidade)',               'fisico',    0.19, 0.04),
+    ('Macroorquidismo (apenas homens)',                              'fisico',    0.26, 0.00),
+    ('Face alongada, mandíbula proeminente e/ou orelhas salientes',  'fisico',    0.29, 0.09);
 
 -- -------------------------------------------------------------
--- 5. LIMIARES
+-- 5. LIMIARES  (limiar de 95% de sensibilidade do artigo)
 -- -------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS limiares (
-    id_limiar       INT           NOT NULL AUTO_INCREMENT,
-    sexo_biologico  ENUM('M','F') NOT NULL UNIQUE,
-    valor           TINYINT       NOT NULL,
-    score_maximo    TINYINT       NOT NULL,
-    atualizado_em   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP
-                                  ON UPDATE CURRENT_TIMESTAMP,
+    id_limiar       INT            NOT NULL AUTO_INCREMENT,
+    sexo_biologico  ENUM('M','F')  NOT NULL UNIQUE,
+    valor           DECIMAL(3,2)   NOT NULL,
+    score_maximo    DECIMAL(4,2)   NOT NULL,
+    atualizado_em   TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                   ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id_limiar)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO limiares (sexo_biologico, valor, score_maximo) VALUES
-    ('M', 13, 19),
-    ('F',  9, 12);
+    ('M', 0.56, 1.95),
+    ('F', 0.55, 1.00);
 
 -- -------------------------------------------------------------
 -- 6. AVALIACOES
@@ -115,8 +122,8 @@ CREATE TABLE IF NOT EXISTS avaliacoes (
     id_avaliacao     INT           NOT NULL AUTO_INCREMENT,
     id_paciente      INT           NOT NULL,
     id_profissional  INT           NOT NULL,
-    score_obtido     TINYINT       NOT NULL DEFAULT 0,
-    limiar_aplicado  TINYINT       NOT NULL,
+    score_obtido     DECIMAL(4,2)  NOT NULL DEFAULT 0.00,
+    limiar_aplicado  DECIMAL(3,2)  NOT NULL,
     resultado        ENUM('encaminhar','monitorar') NOT NULL,
     observacoes      TEXT          NULL,
     data_avaliacao   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -136,11 +143,11 @@ CREATE TABLE IF NOT EXISTS avaliacoes (
 -- 7. RESPOSTAS_AVALIACAO
 -- -------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS respostas_avaliacao (
-    id_resposta    INT        NOT NULL AUTO_INCREMENT,
-    id_avaliacao   INT        NOT NULL,
-    id_sintoma     INT        NOT NULL,
-    presente       TINYINT(1) NOT NULL DEFAULT 0,
-    peso_aplicado  TINYINT    NOT NULL DEFAULT 0,
+    id_resposta    INT          NOT NULL AUTO_INCREMENT,
+    id_avaliacao   INT          NOT NULL,
+    id_sintoma     INT          NOT NULL,
+    presente       TINYINT(1)   NOT NULL DEFAULT 0,
+    peso_aplicado  DECIMAL(3,2) NOT NULL DEFAULT 0.00,
     PRIMARY KEY (id_resposta),
     UNIQUE KEY uq_aval_sintoma (id_avaliacao, id_sintoma),
     CONSTRAINT fk_resp_avaliacao

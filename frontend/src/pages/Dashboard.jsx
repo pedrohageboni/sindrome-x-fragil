@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { api } from "../api.js";
 import { useAuth } from "../context/AuthContext.jsx";
-
-const LABEL_NIVEL = { admin: "Administrador", medico: "Médico", recepcao: "Recepção" };
+import Topbar from "../components/Topbar.jsx";
 
 export default function Dashboard() {
-  const { usuario, logout } = useAuth();
-  const navigate = useNavigate();
+  const { usuario } = useAuth();
   const [metricas, setMetricas] = useState(null);
   const [usuarios, setUsuarios] = useState([]);
   const [erro, setErro] = useState("");
@@ -33,11 +31,6 @@ export default function Dashboard() {
     carregar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  async function sair() {
-    await logout();
-    navigate("/login");
-  }
 
   async function alternarAtivo(u) {
     try {
@@ -65,20 +58,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="topbar">
-        <div className="brand">
-          SXF Triagem <small>Protocolo SXF·BR · v1.0.0</small>
-        </div>
-        <div className="user">
-          <span>{usuario.nome}</span>
-          <span className={`badge badge-${usuario.nivel}`}>
-            {LABEL_NIVEL[usuario.nivel]}
-          </span>
-          <button className="btn btn-sm btn-ghost" onClick={sair}>
-            Sair
-          </button>
-        </div>
-      </div>
+      <Topbar />
 
       <div className="container">
         <h2>Dashboard</h2>
@@ -99,6 +79,24 @@ export default function Dashboard() {
               )}
             </div>
 
+            {metricas.avaliacoes > 0 && (
+              <div className="panel">
+                <h3>Resultados das avaliações</h3>
+                <BarRow
+                  label="Encaminhar"
+                  value={metricas.encaminhamentos}
+                  total={metricas.avaliacoes}
+                  color="var(--danger)"
+                />
+                <BarRow
+                  label="Monitorar"
+                  value={metricas.monitoramento}
+                  total={metricas.avaliacoes}
+                  color="var(--ok)"
+                />
+              </div>
+            )}
+
             {/* Conteúdo condicional por nível */}
             {usuario.nivel === "recepcao" && (
               <div className="panel">
@@ -107,9 +105,9 @@ export default function Dashboard() {
                   Cadastro e consulta de pacientes. As avaliações clínicas são
                   feitas pelos profissionais médicos.
                 </p>
-                <button className="btn btn-sm" disabled>
-                  + Novo paciente (protótipo)
-                </button>
+                <Link to="/pacientes" className="btn btn-sm">
+                  Gerenciar pacientes
+                </Link>
               </div>
             )}
 
@@ -117,12 +115,17 @@ export default function Dashboard() {
               <div className="panel">
                 <h3>Avaliação clínica</h3>
                 <p className="muted">
-                  Realize o checklist clínico, calcule o score e gere o laudo de
-                  encaminhamento.
+                  Aplique o checklist clínico, calcule o score por sexo e gere o
+                  laudo de encaminhamento.
                 </p>
-                <button className="btn btn-sm" disabled>
-                  + Nova avaliação (protótipo)
-                </button>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <Link to="/avaliacoes/nova" className="btn btn-sm">
+                    + Nova avaliação
+                  </Link>
+                  <Link to="/pacientes" className="btn btn-sm btn-ghost">
+                    Pacientes
+                  </Link>
+                </div>
               </div>
             )}
 
@@ -203,6 +206,21 @@ function Metric({ label, value }) {
     <div className="metric">
       <div className="label">{label}</div>
       <div className="value">{value}</div>
+    </div>
+  );
+}
+
+function BarRow({ label, value, total, color }) {
+  const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+  return (
+    <div className="chart-row">
+      <div className="chart-label">{label}</div>
+      <div className="chart-track">
+        <span style={{ width: `${pct}%`, background: color }} />
+      </div>
+      <div className="chart-value">
+        {value} ({pct}%)
+      </div>
     </div>
   );
 }

@@ -1,159 +1,116 @@
-# SXF Triagem — Protótipo (React + Flask + MySQL)
+# SXF Triagem
 
-Protótipo de sistema de triagem clínica para suspeita de **Síndrome do X Frágil (SXF)**.
-Este pacote cobre o **fluxo de acesso**: cadastro de usuários com administração
-multinível, login com senha protegida por hash, e um **dashboard** com conteúdo
-que varia conforme o nível do usuário.
+Sistema web para apoiar a triagem clínica da Síndrome do X Frágil (SXF). A ideia é simples: o profissional marca os sinais que o paciente apresenta, o sistema soma uma pontuação e diz se vale a pena encaminhar para teste genético ou apenas acompanhar.
 
-O login usa a **sessão do Flask** (cookie de sessão) — simples e sem bibliotecas
-extras de autenticação.
+A parte clínica (lista de sintomas, pesos e limiares) foi tirada do artigo de Romero et al. (2025), que validou um checklist de triagem para a população brasileira.
+
+Projeto desenvolvido para a disciplina de Experiência Criativa, no curso de Ciência da Computação da PUCPR.
+
+## O que o sistema faz
+
+- Login e cadastro de usuários com três níveis de acesso: recepção, médico e administrador.
+- A recepção cadastra os pacientes.
+- O médico aplica o checklist e gera o laudo. Só o médico consegue criar avaliações.
+- O administrador gerencia os usuários (ativa, desativa e muda o nível de acesso).
+- O cálculo da pontuação é feito no servidor, com pesos diferentes para homens e mulheres, do jeito que o artigo descreve.
+- O laudo pode ser baixado em PDF.
+
+## Tecnologias usadas
+
+- Front-end: React (com Vite)
+- Back-end: Flask (Python)
+- Banco de dados: MySQL
+
+A autenticação é por sessão do Flask (cookie assinado), sem token.
+
+## Como rodar
+
+Você vai precisar de Python 3.10 ou mais novo, Node 18 ou mais novo, e MySQL instalado.
+
+### 1. Banco de dados
+
+Abra o MySQL e rode o arquivo `backend/schema.sql`. Ele cria o banco `sxf_triagem`, as tabelas, e já preenche os sintomas e os limiares.
+
+Se você já tinha uma versão antiga do banco com dados, rode o `backend/migration_v2.sql` no lugar. Ele atualiza as tabelas sem apagar usuários e pacientes.
+
+### 2. Back-end
+
+Dentro da pasta `backend`:
 
 ```
-sxf-triagem/
-├── backend/                 # API Flask + MySQL
-│   ├── app.py               # rotas (login, cadastro, usuários, dashboard)
-│   ├── auth.py              # hash de senha + decorators de permissão
-│   ├── config.py            # configuração via .env
-│   ├── db.py                # conexão MySQL
-│   ├── schema.sql           # banco de dados (seu schema + CREATE DATABASE)
-│   ├── requirements.txt
-│   └── .env.example
-└── frontend/                # React + Vite (JavaScript)
-    ├── src/
-    │   ├── pages/           # Login, Register, Dashboard
-    │   ├── context/         # AuthContext (estado de sessão)
-    │   ├── components/      # ProtectedRoute
-    │   ├── api.js           # cliente HTTP
-    │   └── styles.css       # CSS minimalista
-    ├── index.html
-    ├── package.json
-    └── vite.config.js
-```
-
-## Como funciona o login
-
-1. O usuário envia e-mail e senha para `/api/auth/login`.
-2. O backend confere a senha (comparando com o hash salvo) e, se estiver correta,
-   guarda os dados do usuário na **sessão do Flask**. O Flask devolve um cookie
-   de sessão assinado.
-3. Nas próximas requisições o navegador reenvia esse cookie automaticamente, e o
-   backend sabe quem está logado. Para sair, `/api/auth/logout` limpa a sessão.
-
-Sem tokens, sem armazenamento manual de credenciais no frontend.
-
-## Administração multinível (regra de negócio)
-
-Três níveis, conforme o `ENUM` da tabela `usuarios`:
-
-| Nível      | O que vê no dashboard                                   |
-|------------|--------------------------------------------------------|
-| `admin`    | Métricas + **gestão de usuários** (criar, mudar nível, ativar/desativar) |
-| `medico`   | Métricas + painel de avaliação clínica                 |
-| `recepcao` | Métricas + painel de cadastro de pacientes             |
-
-**Bootstrap do primeiro usuário:** enquanto não existe nenhum usuário, o primeiro
-cadastro é promovido automaticamente a `admin`. Depois disso, **apenas um admin
-logado** pode cadastrar novos usuários e definir o nível deles.
-
----
-
-# Setup passo a passo (do zero)
-
-> Pré-requisitos: **Python 3.10+**, **Node.js 18+** e **MySQL 8+** instalados.
-> Os comandos abaixo assumem Linux/macOS. No Windows, troque
-> `source .venv/bin/activate` por `.venv\Scripts\activate`.
-
-## 1. MySQL — criar o banco
-
-Garanta que o serviço do MySQL está rodando. Depois rode o schema (ele já cria o
-database `sxf_triagem`):
-
-```bash
-cd backend
-mysql -u root -p < schema.sql
-```
-
-Isso cria todas as tabelas e popula `sintomas` e `limiares` com os dados do protocolo.
-
-## 2. Backend — Flask
-
-```bash
-cd backend
-
-# 2.1 Ambiente virtual
-python3 -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
-
-# 2.2 Dependências
+python -m venv venv
+venv\Scripts\activate        (Windows)
+source venv/bin/activate     (Linux ou Mac)
 pip install -r requirements.txt
+```
 
-# 2.3 Variáveis de ambiente
-cp .env.example .env
-#   abra .env e ajuste DB_USER / DB_PASSWORD para o seu MySQL.
-#   gere uma SECRET_KEY forte:
-python -c "import secrets; print(secrets.token_hex(32))"
-#   cole o valor em SECRET_KEY dentro do .env
+Crie um arquivo `.env` na pasta `backend` com os dados do seu banco (tem um exemplo logo abaixo). Depois é só rodar:
 
-# 2.4 Subir a API
+```
 python app.py
 ```
 
-A API sobe em **http://localhost:5000**. Teste:
+A API sobe em http://localhost:5000.
 
-```bash
-curl http://localhost:5000/api/health
-# {"servico":"SXF Triagem API","status":"ok"}
+Exemplo de `.env`:
+
+```
+SECRET_KEY=coloque-uma-frase-secreta-aqui
+FRONTEND_ORIGIN=http://localhost:5173
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=sua_senha_do_mysql
+DB_NAME=sxf_triagem
 ```
 
-## 3. Frontend — React + Vite
+### 3. Front-end
 
-Em **outro terminal**:
+Dentro da pasta `frontend`:
 
-```bash
-cd frontend
+```
 npm install
 npm run dev
 ```
 
-Abra **http://localhost:5173**. O Vite faz proxy de `/api` para o Flask, então o
-cookie de sessão funciona sem complicação de CORS em desenvolvimento.
+Abre em http://localhost:5173. O Vite já redireciona as chamadas de `/api` para o Flask, então não precisa configurar mais nada para o dev.
 
-## 4. Primeiro acesso
+## Primeiro acesso
 
-1. Vá em **Criar conta** → cadastre o primeiro usuário.
-   Ele vira **admin** automaticamente (bootstrap).
-2. Faça **login** com esse usuário.
-3. No dashboard, use **Cadastrar usuário** para criar contas `medico` e `recepcao`.
+O primeiro usuário que se cadastrar vira administrador automaticamente. A partir daí, só o admin cria novos usuários e escolhe o nível de cada um.
 
----
+Para testar o fluxo completo:
 
-# Mapa de endpoints
+1. Vá em /cadastro e crie o primeiro usuário (ele vira admin).
+2. Logado como admin, cadastre um médico e uma recepção.
+3. Cadastre um paciente na tela de Pacientes.
+4. Entre como médico e preencha o CRM em "Meu perfil".
+5. Crie uma avaliação, veja o resultado e baixe o laudo em PDF.
 
-| Método | Rota                       | Acesso        | Descrição                          |
-|--------|----------------------------|---------------|------------------------------------|
-| GET    | `/api/health`              | público       | Status da API                      |
-| POST   | `/api/auth/registrar`      | público*/admin| Cadastra usuário (*1º = admin)     |
-| POST   | `/api/auth/login`          | público       | Autentica e cria a sessão          |
-| POST   | `/api/auth/logout`         | autenticado   | Encerra a sessão                   |
-| GET    | `/api/auth/me`             | autenticado   | Dados do usuário logado            |
-| GET    | `/api/dashboard`           | autenticado   | Métricas resumidas                 |
-| GET    | `/api/usuarios`            | admin         | Lista usuários                     |
-| PATCH  | `/api/usuarios/<id>`       | admin         | Altera nível / ativa-desativa      |
+## Como funciona o cálculo
 
----
+Cada sintoma tem um peso para o sexo masculino e outro para o feminino. O score é a soma dos pesos dos sintomas marcados como presentes. Se o score chega no limiar do sexo (0,56 para homens e 0,55 para mulheres), o resultado é "encaminhar". Se fica abaixo, é "monitorar". O macroorquidismo só aparece e só conta para pacientes do sexo masculino, como no artigo.
 
-# Requisitos atendidos neste protótipo
+A conta é sempre refeita no servidor a partir dos pesos guardados no banco. O navegador só envia quais sintomas foram marcados.
 
-- **RF11** — autenticação antes do acesso (login + sessão).
-- **RF08 / RNF08** — limiares e pesos configuráveis (tabelas `limiares` e `sintomas`).
-- **RNF01** — senha armazenada com hash (nunca em texto puro).
-- **RNF02** — controle de acesso por perfil (`admin`/`medico`/`recepcao`).
-- **RNF03** — auditoria de ações em `historico_acesso` (login, cadastro, edição).
-- **RNF06 / RNF07** — interface enxuta e responsiva.
+## Estrutura das pastas
 
-# Próximos passos (fora do escopo deste protótipo)
+```
+backend/    API em Flask, scripts do banco e requirements
+frontend/   aplicação React
+docs/       tutorial de uso e documento de implantação
+```
 
-- Telas de cadastro de paciente, checklist clínico, cálculo de score e laudo
-  (tabelas `pacientes`, `avaliacoes`, `respostas_avaliacao`, `laudos` já existem no schema).
-- Endpoint de cálculo de score somando os pesos dos sintomas presentes e
-  comparando com o limiar do sexo (RF06/RF07).
+## Aviso
+
+Este é um projeto acadêmico e funciona como ferramenta de apoio à decisão. Ele não substitui a avaliação de um médico nem o diagnóstico, que depende de teste genético (PCR ou Southern blot).
+
+## Licença
+
+MIT. O texto completo está no arquivo LICENSE.
+
+## Equipe
+
+(coloque aqui os nomes do grupo)
+
+Disciplina de Experiência Criativa, PUCPR.
